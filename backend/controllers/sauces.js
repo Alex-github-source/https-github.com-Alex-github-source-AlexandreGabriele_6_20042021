@@ -1,59 +1,59 @@
-const Sauce = require('../models/Sauce');
+const Sauce = require('../models/Sauce');     //on appelle le modele " Sauce"
 const fs = require('fs');
 
 
-exports.createSauce =  (req, res, next) => {
+exports.createSauce =  (req, res, next) => {                  //logique métier pour la création d'une sauce
  
   const sauceObject = JSON.parse(req.body.sauce);
-  delete sauceObject._id;
+  delete sauceObject._id; //on delete l'id car mongoDB nous en donne une d'office
     const sauce = new Sauce ({
       ...sauceObject,
-      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`, //on crée la sauce en elle meme
       likes:0,
       dislikes:0,
       usersLiked:[],
       usersDisliked:[]
     });
-   sauce.save()
-     .then(() => res.status(201).json({ message: 'Sauce enregistrée !'}))
+    sauce.save()
+     .then(() => res.status(201).json({ message: 'Sauce enregistrée !'})) //on sauvegarde la sauce créée
       .catch(error => res.status(400).json({ error })); 
    
  } ;
-exports.getOneSauce = (req, res, next) => {
+exports.getOneSauce = (req, res, next) => {     //logique métier pour récupérer une sauce
     Sauce.findOne({ _id: req.params.id })
       .then(sauce => res.status(200).json(sauce))
       .catch(error => res.status(404).json({ error }));
   };
-exports.modifySauce = (req, res, next) => {
+exports.modifySauce = (req, res, next) => {   //logique metier pour modifier une sauce
     const sauceObject = req.file ?
     {
       ...JSON.parse(req.body.sauce),
-      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}` // on récupere la sauce
 
     } : {...req.body};
-    Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+    Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })   //on update la sauce dans la base de donnée
       .then(() => res.status(200).json({ message: 'Sauce modifiée !'}))
       .catch(error => res.status(400).json({ error }));
   };
-exports.deleteSauce = (req, res, next) => {
+exports.deleteSauce = (req, res, next) => { //logique métier pour supprimer une sauce
   Sauce.findOne({_id: req.params.id})
-  .then(sauce =>{
+  .then(sauce =>{                                         // on récupere la sauce a supp
     const filename = sauce.imageUrl.split('/images/')[1];
     fs.unlink(`images/${filename}`,() =>{
-    Sauce.deleteOne({ _id: req.params.id })
+    Sauce.deleteOne({ _id: req.params.id })       //on supprime la sauce
       .then(() => res.status(200).json({ message: 'Sauce supprimée !'}))
       .catch(error => res.status(400).json({ error }));
     });
   })
   .catch(error => res.status(500).json({ error }));
 };
-exports.getAllSauces = (req,res,next) =>{
+exports.getAllSauces = (req,res,next) =>{           //logique métier pour récupérer toutes les sauces
     Sauce.find()
     .then(sauces => res.status(200).json(sauces))
     .catch(error => res.status(400).json({error}));
 };
 
-exports.getLikes = (req, res, next) => {
+exports.getLikes = (req, res, next) => {        //logique métier pour les likes/dislikes
  
   
   let like = req.body.like
@@ -75,7 +75,7 @@ exports.getLikes = (req, res, next) => {
         }, 
       })
       .then(() => res.status(200).json({
-        message: 'j\'aime ajouté !'
+        message: 'Like ajouté !'
       }))
       .catch((error) => res.status(400).json({
         error
